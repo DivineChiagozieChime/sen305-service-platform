@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db.models import Q
+from django.utils import timezone
 
 from .models import Category, Comment, ServiceRequest, WorkOrder
 
@@ -17,13 +19,40 @@ class CommentInline(admin.TabularInline):
     readonly_fields = ("created_at",)
 
 
+class OverdueFilter(admin.SimpleListFilter):
+    title = "overdue"
+    parameter_name = "overdue"
+
+    def lookups(self, request, model_admin):
+        return (("yes", "Overdue"), ("no", "Not overdue"))
+
+    def queryset(self, request, queryset):
+        overdue = Q(due_at__lt=timezone.now()) & ~Q(
+            status__in=[
+                ServiceRequest.Status.RESOLVED,
+                ServiceRequest.Status.CLOSED,
+            ]
+        )
+        if self.value() == "yes":
+            return queryset.filter(overdue)
+        if self.value() == "no":
+            return queryset.exclude(overdue)
+        return queryset
+
+
 @admin.register(ServiceRequest)
 class ServiceRequestAdmin(admin.ModelAdmin):
     list_display = (
-        "title", "category", "requester", "priority", "status", "created_at",
+        "title", "category", "requester", "priority", "status",
+        "due_at", "resolved_at", "created_at",
     )
-    list_filter = ("status", "priority", "category")
-    search_fields = ("title", "description", "location", "requester__username")
+    list_filter = (
+        "status", "priority", "category", OverdueFilter, "due_at", "resolved_at",
+    )
+    search_fields = (
+        "title", "description", "location", "resolution_summary",
+        "requester__username",
+    )
     readonly_fields = ("id", "created_at", "updated_at")
     autocomplete_fields = ("requester", "category")
     date_hierarchy = "created_at"

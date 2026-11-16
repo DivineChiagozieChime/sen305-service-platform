@@ -1,0 +1,22 @@
+10 objects imported automatically (use -v 2 for details).
+
+=== TASK 1: requests with different due dates ===
+Chosen time: 2026-11-17 19:37:16.539120+00:00
+[('Lab3 due soon', datetime.datetime(2026, 11, 16, 21, 37, 16, 539120, tzinfo=datetime.timezone.utc))]
+
+=== TASK 3: ten synthetic requests ===
+Total Lab3 requests: 12
+
+--- queryset.query ---
+SELECT `requests_app_servicerequest`.`id`, `requests_app_servicerequest`.`requester_id`, `requests_app_servicerequest`.`category_id`, `requests_app_servicerequest`.`title`, `requests_app_servicerequest`.`description`, `requests_app_servicerequest`.`location`, `requests_app_servicerequest`.`priority`, `requests_app_servicerequest`.`status`, `requests_app_servicerequest`.`due_at`, `requests_app_servicerequest`.`resolved_at`, `requests_app_servicerequest`.`resolution_summary`, `requests_app_servicerequest`.`created_at`, `requests_app_servicerequest`.`updated_at` FROM `requests_app_servicerequest` WHERE (`requests_app_servicerequest`.`category_id` = 1 AND `requests_app_servicerequest`.`status` IN (open, assigned)) ORDER BY `requests_app_servicerequest`.`priority` ASC, `requests_app_servicerequest`.`created_at` ASC
+
+--- queryset.explain() ---
+-> Sort row IDs: requests_app_servicerequest.priority, requests_app_servicerequest.created_at  (cost=2.31 rows=4)
+    -> Index range scan on requests_app_servicerequest using req_cat_status_idx over (category_id = 1 AND status = 'assigned') OR (category_id = 1 AND status = 'open'), with index condition: ((requests_app_servicerequest.category_id = 1) and (requests_app_servicerequest.`status` in ('open','assigned')))  (cost=2.31 rows=4)
+
+
+--- results ---
+1 open Lab3 synthetic 1
+2 assigned Lab3 synthetic 3
+3 open Lab3 synthetic 2
+5 assigned Lab3 synthetic 4
